@@ -43,6 +43,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
+#include <float.h>
 
 /*
  * This allows to add a platform specific header file. Some embedded platforms
@@ -1122,6 +1124,43 @@ void _expect_function_call(
     list_add_value(&global_call_ordering_head, ordering, count);
 }
 
+static int float_compare(const float left,
+                         const float right,
+			 const float epsilon) {
+	float absLeft = fabsf(left);
+	float absRight = fabsf(right);
+	float diff = fabsf(left - right);
+	float sumAbs;
+	float denominator;
+
+	if (left == right) { // shortcut, handles infinities
+		return 1;
+	} else if (left == 0 || right == 0 || diff < FLT_EPSILON) {
+		// a or b is zero or both are extremely close to it
+		// relative error is less meaningful here
+		return diff < (epsilon * FLT_EPSILON);
+	} else { // use relative error
+		sumAbs = absLeft + absRight;
+		if (sumAbs < FLT_MAX) {
+			denominator = sumAbs;
+		} else {
+			denominator = FLT_MAX;
+		}
+		return (diff / denominator) < epsilon;
+	}
+}
+
+static int float_values_equal_display_error(const float left,
+                                            const float right,
+					    const float epsilon) {
+	const int equal = float_compare(left, right, epsilon);
+	if (!equal) {
+		cm_print_error(FloatPrintfFormat " != "
+			       FloatPrintfFormat "\n", left, right);
+	}
+	return equal;
+}
+
 /* Returns 1 if the specified values are equal.  If the values are not equal
  * an error is displayed and 0 is returned. */
 static int values_equal_display_error(const LargestIntegralType left,
@@ -1712,6 +1751,14 @@ void _assert_return_code(const LargestIntegralType result,
         }
         _fail(file, line);
     }
+}
+
+void _assert_float_equal(
+	const float a, const float b, const float epsilon,
+	const char * const file, const int line) {
+	if (!float_values_equal_display_error(a, b, epsilon)) {
+		_fail(file, line);
+	}
 }
 
 void _assert_int_equal(

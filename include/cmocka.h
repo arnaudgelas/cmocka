@@ -106,6 +106,10 @@ typedef uintmax_t LargestIntegralType;
 # endif /* _WIN32 */
 #endif /* LargestIntegralTypePrintfFormat */
 
+#ifndef FloatPrintfFormat
+# define FloatPrintfFormat "%f"
+#endif /* FloatPrintfFormat */
+
 /* Perform an unsigned cast to LargestIntegralType. */
 #define cast_to_largest_integral_type(value) \
     ((LargestIntegralType)(value))
@@ -1194,6 +1198,12 @@ void assert_int_equal(int a, int b);
                       __FILE__, __LINE__)
 #endif
 
+#define assert_float_equal(a, b, epsilon) \
+	_assert_float_equal((float)a, \
+			(float)b, \
+			(float)epsilon, \
+			__FILE__, __LINE__)
+
 #ifdef DOXYGEN
 /**
  * @brief Assert that the two given integers are not equal.
@@ -2199,6 +2209,9 @@ void _assert_return_code(const LargestIntegralType result,
                          const char * const expression,
                          const char * const file,
                          const int line);
+void _assert_float_equal(const float a, const float n,
+		const float epsilon, const char* const file,
+		const int line);
 void _assert_int_equal(
     const LargestIntegralType a, const LargestIntegralType b,
     const char * const file, const int line);

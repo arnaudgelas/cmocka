@@ -22,7 +22,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-static int setup(void **state) {
+static int int_setup(void **state) {
     int *answer = malloc(sizeof(int));
 
     assert_non_null(answer);
@@ -31,6 +31,18 @@ static int setup(void **state) {
     *state = answer;
 
     return 0;
+}
+
+static int float_setup(void ** state) {
+    float *answer = malloc(sizeof(float));
+
+    assert_non_null(answer);
+    *answer = 4.2f;
+
+    *state = answer;
+
+    return 0;
+
 }
 
 static int teardown(void **state) {
@@ -51,11 +63,21 @@ static void int_test_success(void **state) {
     assert_int_equal(*answer, 42);
 }
 
+/* A test case that does check if float is equal. */
+static void float_test_success(void **state) {
+    float *answer = *state;
+
+    assert_float_equal(*answer, 4.2f, 0.00001f);
+}
+
+
+
 
 int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(null_test_success),
-        cmocka_unit_test_setup_teardown(int_test_success, setup, teardown),
+        cmocka_unit_test_setup_teardown(int_test_success, int_setup, teardown),
+        cmocka_unit_test_setup_teardown(float_test_success, float_setup, teardown),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
